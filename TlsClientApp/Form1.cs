@@ -23,7 +23,7 @@ namespace TlsClientApp
         {
             using (var client = new TcpClient("localhost", 4433))
             {
-                using (var sslStream = new SslStream(client.GetStream(), false, (_, cert, chain, errors) => true))
+                using (var sslStream = new SslStream(client.GetStream(), false, (_1, _2, _3, _4) => true))
                 {
                     sslStream.AuthenticateAsClientAsync("localhost").Wait();
 
