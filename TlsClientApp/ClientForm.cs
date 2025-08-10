@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Windows.Forms;
@@ -36,6 +38,10 @@ namespace TlsClientApp
                     }
                 }
             }
+            catch (AuthenticationException exception)
+            {
+                MessageBox.Show(exception.Message, "Error");
+            }
             finally
             {
                 commPanel.Visible = false;
@@ -48,7 +54,44 @@ namespace TlsClientApp
             X509Chain chain,
             SslPolicyErrors sslPolicyErrors)
         {
-            return true;
+            try
+            {
+                Directory.CreateDirectory("cert");
+                foreach (var filePath in Directory.EnumerateFiles("cert", "*.crt"))
+                {
+                    try
+                    {
+                        var cert = X509Certificate.CreateFromCertFile(filePath);
+                        if (cert.Equals(certificate)) return true;
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+
+            bool authed = false;
+            Invoke((MethodInvoker)(() =>
+            {
+                if (MessageBox.Show(
+                    $"未認証の証明書です。認証しますか？\n{certificate.ToString()}",
+                    "Information",
+                    MessageBoxButtons.YesNo) != DialogResult.Yes) return;
+                try
+                {
+                    using (var file = File.OpenWrite($"cert/{certificate.GetSerialNumberString()}.crt"))
+                    {
+                        var rawData = certificate.GetRawCertData();
+                        file.Write(rawData, 0, rawData.Length);
+                    }
+                    authed = true;
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(e.Message, "Error");
+                }
+            }));
+
+            return authed;
         }
     }
 }
