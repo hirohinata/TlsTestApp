@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
@@ -19,22 +14,31 @@ namespace TlsClientApp
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private async void button1_Click(object sender, EventArgs e)
         {
-            using (var client = new TcpClient("localhost", 4433))
+            try
             {
-                using (var sslStream = new SslStream(client.GetStream(), false, (_1, _2, _3, _4) => true))
+                commPanel.Visible = true;
+                using (var client = new TcpClient())
                 {
-                    sslStream.AuthenticateAsClientAsync("localhost").Wait();
+                    await client.ConnectAsync("localhost", 4433);
+                    using (var sslStream = new SslStream(client.GetStream(), false, (_1, _2, _3, _4) => true))
+                    {
+                        await sslStream.AuthenticateAsClientAsync("localhost");
 
-                    string message = sendTextBox.Text;
-                    byte[] data = Encoding.UTF8.GetBytes(message);
-                    sslStream.WriteAsync(data, 0, data.Length).Wait();
+                        string message = sendTextBox.Text;
+                        byte[] data = Encoding.UTF8.GetBytes(message);
+                        await sslStream.WriteAsync(data, 0, data.Length);
 
-                    var buffer = new byte[1024];
-                    int bytesRead = sslStream.ReadAsync(buffer, 0, buffer.Length).Result;
-                    recvTextBox.Text = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                        var buffer = new byte[1024];
+                        int bytesRead = await sslStream.ReadAsync(buffer, 0, buffer.Length);
+                        recvTextBox.Text = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                    }
                 }
+            }
+            finally
+            {
+                commPanel.Visible = false;
             }
         }
     }
