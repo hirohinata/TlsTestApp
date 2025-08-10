@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace TlsClientApp
 {
-    public partial class Form1 : Form
+    public partial class ClientForm : Form
     {
-        public Form1()
+        public ClientForm()
         {
             InitializeComponent();
         }
@@ -22,7 +22,7 @@ namespace TlsClientApp
                 using (var client = new TcpClient())
                 {
                     await client.ConnectAsync("localhost", 4433);
-                    using (var sslStream = new SslStream(client.GetStream(), false, (_1, _2, _3, _4) => true))
+                    using (var sslStream = new SslStream(client.GetStream(), false, ValidateRemoteCertificate))
                     {
                         await sslStream.AuthenticateAsClientAsync("localhost");
 
@@ -40,6 +40,15 @@ namespace TlsClientApp
             {
                 commPanel.Visible = false;
             }
+        }
+
+        private bool ValidateRemoteCertificate(
+            object sender,
+            X509Certificate certificate,
+            X509Chain chain,
+            SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
         }
     }
 }

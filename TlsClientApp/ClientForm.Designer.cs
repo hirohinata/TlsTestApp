@@ -1,6 +1,6 @@
 ﻿namespace TlsClientApp
 {
-    partial class Form1
+    partial class ClientForm
     {
         /// <summary>
         /// 必要なデザイナー変数です。
