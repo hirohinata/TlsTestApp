@@ -6,6 +6,7 @@ using System.Net.Security;
 using System.Text;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
+using System.Threading;
 
 
 namespace TlsServerApp
@@ -48,6 +49,13 @@ namespace TlsServerApp
                     Console.WriteLine($"Received: {received}");
 
                     await sslStream.WriteAsync(Encoding.UTF8.GetBytes(received), 0, bytesRead); // Echo back
+
+                    Thread.Sleep(1000);
+
+                    await sslStream.ShutdownAsync();
+                    await sslStream.FlushAsync();
+
+                    Thread.Sleep(1000);
                 }
                 catch (Exception ex)
                 {

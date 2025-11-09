@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace TlsClientApp
@@ -35,6 +36,13 @@ namespace TlsClientApp
                         var buffer = new byte[1024];
                         int bytesRead = await sslStream.ReadAsync(buffer, 0, buffer.Length);
                         recvTextBox.Text = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+                        Thread.Sleep(1000);
+
+                        await sslStream.ShutdownAsync();
+                        await sslStream.FlushAsync();
+
+                        Thread.Sleep(1000);
                     }
                 }
             }
